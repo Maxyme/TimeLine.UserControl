@@ -20,3 +20,14 @@ C:\Users\Maxime Jacques\Desktop\UserControl.Timeline\TimelineTest\obj\Debug\Time
 C:\Users\Maxime Jacques\Desktop\UserControl.Timeline\TimelineTest\obj\Debug\TimelineTest.csproj.GenerateResource.Cache
 C:\Users\Maxime Jacques\Desktop\UserControl.Timeline\TimelineTest\obj\Debug\TimelineTest.exe
 C:\Users\Maxime Jacques\Desktop\UserControl.Timeline\TimelineTest\obj\Debug\TimelineTest.pdb
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\TimelineTest\bin\Debug\TimelineTest.exe.config
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\TimelineTest\obj\Debug\TimelineTest.exe
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\TimelineTest\obj\Debug\TimelineTest.pdb
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\TimelineTest\bin\Debug\TimelineTest.exe
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\TimelineTest\bin\Debug\TimelineTest.pdb
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\TimelineTest\bin\Debug\Timeline.dll
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\TimelineTest\bin\Debug\Timeline.pdb
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\TimelineTest\obj\Debug\TimelineTest.csprojResolveAssemblyReference.cache
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\TimelineTest\obj\Debug\TimelineTest.TimelineTest.resources
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\TimelineTest\obj\Debug\TimelineTest.Properties.Resources.resources
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\TimelineTest\obj\Debug\TimelineTest.csproj.GenerateResource.Cache

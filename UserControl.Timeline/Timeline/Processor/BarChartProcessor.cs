@@ -50,17 +50,26 @@ namespace Timeline.Processor
             var newFromTime = new DateTime(startDate.Year, startDate.Month, startDate.Day);
             var interval = endDate - startDate;
 
-            if (interval.Days > 1)
+            if (interval.TotalDays > 1)
             {
-                while (newFromTime <= endDate)
+                for (var i = new DateTime(startDate.Year, startDate.Month, startDate.Day); i <= endDate; i.AddDays(1))
                 {
                     var header = new HeaderModel
                     {
                         Time = new DateTime(newFromTime.Year, newFromTime.Month, newFromTime.Day, 0, 0, 0)
                     };
                     headerList.Add(header);
-                    newFromTime = newFromTime.AddDays(1);
                 }
+
+                //while (newFromTime <= endDate)
+                //{
+                //    var header = new HeaderModel
+                //    {
+                //        Time = new DateTime(newFromTime.Year, newFromTime.Month, newFromTime.Day, 0, 0, 0)
+                //    };
+                //    headerList.Add(header);
+                //    newFromTime = newFromTime.AddDays(1);
+                //}
             }
             else
             {
