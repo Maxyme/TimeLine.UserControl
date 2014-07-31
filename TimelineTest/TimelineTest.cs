@@ -15,18 +15,18 @@ namespace TimelineTest
 
         private void TimelineTest_Load(object sender, EventArgs e)
         {
-            Random randomVar = new Random();
+            var randomVar = new Random();
 
-            List<ItemModel> testList = new List<ItemModel>();
+            var testList = new List<ItemModel>();
 
-            var startDate = new DateTime(2013, 12, 28, 0, 0, 0);
-            var endDate = new DateTime(2013, 12, 30, 22, 30, 0);
+            var startDate = new DateTime(2013, 12, 29, 10, 9, 0);
+            var endDate = new DateTime(2013, 12, 30, 22, 29, 0);
 
-            for (int i = 0; i < 20; i++)
+            for (var i = 0; i < 20; i++)
             {
-                for (DateTime d = startDate; d < endDate; d = d.AddSeconds(randomVar.Next(13000, 14000)))
+                for (var d = startDate; d < endDate; d = d.AddSeconds(randomVar.Next(13000, 14000)))
                 {
-                    ItemModel item1 = new ItemModel
+                    var item1 = new ItemModel
                     {
                         ItemName = "Item" + "" + i.ToString(),
                         Duration = TimeSpan.FromSeconds(randomVar.Next(8, 15000)),

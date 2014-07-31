@@ -1,14 +1,16 @@
 ﻿/// <summary>
 /// Adds a timeline or Gantt user control.
 /// See Timeline Test for usage.
-/// updated by Maxime Jacques - 2014
-/// Parts of code from v0.55 by Adrian "Adagio" Grau http://www.codeproject.com/Articles/20731/Gantt-Chart
+/// Created by Maxime Jacques - 2014
+/// Parts of code and inspiration from VBGanttChart v0.55 
+/// by Adrian "Adagio" Grau http://www.codeproject.com/Articles/20731/Gantt-Chart
 /// </summary> 
 
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Timeline.Model;
 using Timeline.Processor;
@@ -17,47 +19,11 @@ namespace Timeline
 {
     public partial class Timeline : UserControl
     {
-        #region constants
-
-        private const int barStartRight = 25;
-        private const int barStartLeft = 50;
-        private const int headerTimeStartTop = 30;
-        private const int barStartTop = 50;
-        private const int barHeight = 40;
-        private const int barSpace = 8;
-        private const int toolTipTitleHeight = 14;
-        private const int toolTipfontHeight = 12;
-
-        #endregion
-
-        #region variables
-
-        private readonly ToolTip toolTip = new ToolTip();
-        private readonly VScrollBar vScrollBar1 = new VScrollBar();
-        private int availableWidth;
-        private List<BarModel> barList = new List<BarModel>();
-        private DateTime endDate;
-        private int itemCount;
-        private int numberOfBarsInControl;
-        private Point oldMousePosition;
-        private Font rowFont;
-        private int scrollPosition;
-        private DateTime startDate;
-        private Font titleFont;
-        private List<string> toolTipTextlist;
-        private int widthPerHeader;
-        private string ToolTipTextTitle { get; set; }
-
-        #endregion
-
         #region public properties
-
-        public Pen GridColor { get; set; }
         public Color HoverClickColor { get; set; }
         public Font RowFont { get; set; }
         public Font DateFont { get; set; }
         public Font TimeFont { get; set; }
-
         #endregion
 
         public Timeline()
@@ -67,17 +33,17 @@ namespace Timeline
 
         public void ShowBarChart(DateTime chartStartDate, DateTime chartEndDate, List<ItemModel> items)
         {
-            //reset ItemList
-            barList.Clear();
-            startDate = chartStartDate;
-            endDate = chartEndDate;
-            barList = BarChartProcessor.GetBarList(items, out itemCount);
+            Global.StartDate = chartStartDate;
+            Global.EndDate = chartEndDate;
+            var proc = new BarChartProcessor();
+            Global.BarList = proc.GetBarList(items);
+            Global.ItemCount = items.Select(i => i.ItemName).Distinct().Count();
         }
-
         private void ChartMouseMove(Object sender, MouseEventArgs e)
         {
             var localMousePosition = new Point(e.X, e.Y);
-            if (localMousePosition == oldMousePosition)
+            var proc = new BarChartProcessor();
+            if (localMousePosition == Global.OldMousePosition)
             {
                 return;
             }
@@ -86,9 +52,9 @@ namespace Timeline
             var tempText = new List<string>();
             var tempTitle = "";
 
-            foreach (var bar in barList)
+            Parallel.ForEach(Global.BarList, bar =>
             {
-                if (BarChartProcessor.MouseInsideBar(localMousePosition, bar) && bar.Visible)
+                if (proc.MouseInsideBar(localMousePosition, bar) && bar.Visible)
                 {
                     bar.IsMouseOver = true;
                     tempTitle = bar.Name;
@@ -100,30 +66,34 @@ namespace Timeline
                 {
                     bar.IsMouseOver = false;
                 }
-            }
+            });
 
-            ToolTipTextList = tempText;
-            ToolTipTextTitle = tempTitle;
+            Global.ToolTipTextList = tempText;
+            Global.ToolTipTextTitle = tempTitle;
+            Global.ToolTip.SetToolTip(this, Global.ToolTipTextList.Count > 0 ? Global.ToolTipTextList.ToString() : "");
+            //if (Global.ToolTipTextList == null || Global.ToolTipTextTitle == null || Global.ToolTipTextTitle != tempTitle || !Global.ToolTipTextList.SequenceEqual(tempText))
+            //{
+
+            //}
 
             if (mouseOverObject)
             {
                 PaintChart();
             }
 
-            oldMousePosition = localMousePosition;
+            Global.OldMousePosition = localMousePosition;
         }
-
-        private void ChartMouseClick(Object sender, MouseEventArgs e)
+        private static void ChartMouseClick(Object sender, MouseEventArgs e)
         {
             var localMousePosition = new Point(e.X, e.Y);
-            if (localMousePosition == oldMousePosition)
+            var proc = new BarChartProcessor();
+            if (localMousePosition == Global.OldMousePosition)
             {
                 return;
             }
-
-            foreach (var bar in barList)
+            Parallel.ForEach(Global.BarList, bar =>
             {
-                if (BarChartProcessor.MouseInsideBar(localMousePosition, bar) && bar.Visible)
+                if (proc.MouseInsideBar(localMousePosition, bar) && bar.Visible)
                 {
                     bar.IsClicked = true;
                 }
@@ -131,18 +101,17 @@ namespace Timeline
                 {
                     bar.IsClicked = false;
                 }
-            }
+            });
         }
-
+        private static void ChartMouseWheel(object sender, MouseEventArgs e)
+        {
+            Global.VScrollBar1.Focus();
+        }
         private void Timeline_Load(object sender, EventArgs e)
         {
-            //initialize variables
-            GridColor = Pens.LightBlue;
+            //initialize public properties
+            RowFont = TimeFont = DateFont = new Font("Segoe UI", 10, FontStyle.Regular, GraphicsUnit.Point);
             HoverClickColor = Color.LightBlue;
-            RowFont = DateFont = TimeFont = new Font("Arial", 10, FontStyle.Regular, GraphicsUnit.Point);
-            Font = new Font("Arial", 10, FontStyle.Regular, GraphicsUnit.Point);
-            titleFont = new Font("Arial", 10, FontStyle.Bold, GraphicsUnit.Point);
-            rowFont = new Font("Arial", 10, FontStyle.Regular, GraphicsUnit.Point);
             BackColor = Color.White;
 
             //initialize mouse controls
@@ -151,68 +120,53 @@ namespace Timeline
             MouseClick += ChartMouseClick;
 
             //initialize Tooltip
-            toolTip.OwnerDraw = true;
-            toolTip.Draw += ToolTipText_Draw;
-            toolTip.Popup += ToolTipText_Popup;
+            Global.ToolTip = new ToolTip
+            {
+                OwnerDraw = true
+            };
+            Global.ToolTip.Draw += ToolTipText_Draw;
+            Global.ToolTip.Popup += ToolTipText_Popup;
 
             //Flicker free drawing
             SetStyle(ControlStyles.DoubleBuffer | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint, true);
 
-            numberOfBarsInControl = (Height - barStartTop)/(barHeight + barSpace);
-
             //ScrollBar
-            vScrollBar1.Dock = DockStyle.Right;
-            vScrollBar1.Visible = false;
-            Controls.Add(vScrollBar1);
-            vScrollBar1.Scroll += vScrollBar1_Scroll;
+            Global.VScrollBar1 = new VScrollBar 
+            {   Dock = DockStyle.Right, 
+                Visible = false
+            };
+            Controls.Add(Global.VScrollBar1);
+            Global.VScrollBar1.Scroll += vScrollBar1_Scroll;
         }
-
-        private void ChartMouseWheel(object sender, MouseEventArgs e)
-        {
-            vScrollBar1.Focus();
-        }
-
         private void vScrollBar1_Scroll(object sender, ScrollEventArgs e)
         {
-            scrollPosition = vScrollBar1.Value;
+            Global.ScrollPosition = Global.VScrollBar1.Value;
             PaintChart();
         }
 
-        #region ToolTip
-
-        private List<string> ToolTipTextList
+        private static void ToolTipText_Draw(Object sender, DrawToolTipEventArgs e)
         {
-            get { return toolTipTextlist; }
-            set
+            if (Global.ToolTipTextList.Count == 0)
             {
-                toolTipTextlist = value;
-                toolTip.SetToolTip(this, toolTipTextlist.Count > 0 ? value.ToString() : "");
+                return;
             }
-        }
-
-        private void ToolTipText_Draw(Object sender, DrawToolTipEventArgs e)
-        {
             e.Graphics.FillRectangle(Brushes.White, e.Bounds);
-            e.Graphics.DrawString(ToolTipTextTitle, titleFont, Brushes.Black, 5, 0);
+            e.Graphics.DrawString(Global.ToolTipTextTitle, Global.TitleFont, Brushes.Black, 5, 0);
 
             // Draws the lines in the text box
-            foreach (var str in ToolTipTextList)
+            foreach (var str in Global.ToolTipTextList)
             {
-                var stringY = (int) (toolTipTitleHeight - toolTipfontHeight - e.Graphics.MeasureString(str, rowFont).Height)/2 +
-                              10 + ((ToolTipTextList.IndexOf(str) + 1)*14);
-                e.Graphics.DrawString(str, rowFont, Brushes.Black, 5, stringY);
+                var stringY = (Global.ToolTipTitleHeight - Global.ToolTipfontHeight - e.Graphics.MeasureString(str, Global.RowFont).Height) / 2 +
+                              10 + ((Global.ToolTipTextList.IndexOf(str) + 1) * 14);
+                e.Graphics.DrawString(str, Global.RowFont, Brushes.Black, 5, stringY);
             }
         }
 
-        private void ToolTipText_Popup(Object sender, PopupEventArgs e)
+        private static void ToolTipText_Popup(Object sender, PopupEventArgs e)
         {
-            var height = (toolTipTitleHeight + 4) + (ToolTipTextList.Count*(toolTipfontHeight + 3));
+            var height = (Global.ToolTipTitleHeight + 4) + (Global.ToolTipTextList.Count * (Global.ToolTipfontHeight + 3));
             e.ToolTipSize = new Size(230, height);
         }
-
-        #endregion
-
-        #region Draw
 
         private void PaintChart()
         {
@@ -221,20 +175,18 @@ namespace Timeline
 
         private void PaintChart(Graphics graphics)
         {
-            var headerList = BarChartProcessor.GetFullHeaderList(startDate, endDate, Width);
-
-            availableWidth = Width - barStartLeft - barStartRight;
-            widthPerHeader = availableWidth/headerList.Count;
-
-            if (headerList.Count == 0 || itemCount == 0)
+            var proc = new BarChartProcessor();
+            var headerList = proc.GetFullHeaderList(Global.StartDate, Global.EndDate, Width);
+            if (headerList.Count == 0 || Global.ItemCount == 0)
             {
                 return;
             }
-
-            if (itemCount*(barHeight + barSpace) > Height)
+            Global.AvailableWidth = Width - Global.BarStartLeft - Global.BarStartRight;
+            Global.WidthPerHeader = Global.AvailableWidth / headerList.Count;
+            if (Global.ItemCount * (Global.BarHeight + Global.BarSpace) > Height)
             {
-                vScrollBar1.Visible = true;
-                vScrollBar1.Maximum = itemCount - 3;
+                Global.VScrollBar1.Visible = true;
+                Global.VScrollBar1.Maximum = Global.ItemCount - 3;
             }
 
             graphics.Clear(BackColor);
@@ -247,7 +199,7 @@ namespace Timeline
             PaintChart(pe.Graphics);
         }
 
-        private void DrawBars(Graphics graphics, List<HeaderModel> headerList)
+        private void DrawBars(Graphics graphics, IList<HeaderModel> headerList)
         {
             var timeBetweenHeaders = headerList[1].Time - headerList[0].Time;
             var widthBetween = headerList[1].StartLocation - headerList[0].StartLocation;
@@ -257,35 +209,38 @@ namespace Timeline
             var rowTitleList = new List<string>();
 
             // Draws each bar
-            foreach (BarModel bar in barList)
+            foreach (var bar in Global.BarList)
             {
-                var startTimeSpan = bar.StartValue - startDate;
+                var startTimeSpan = bar.StartValue - Global.StartDate;
                 var startLocation = (int) (pixelsPerSecond*startTimeSpan.TotalSeconds);
-                var x = barStartLeft + startLocation;
-                var y = barStartTop + (barHeight*(bar.RowIndex - scrollPosition)) +
-                        (barSpace*(bar.RowIndex - scrollPosition)) + 4;
-                var width = (int) (pixelsPerSecond * bar.Duration.TotalSeconds);
+                var x = Global.BarStartLeft + startLocation;
+                var y = Global.BarStartTop + (Global.BarHeight*(bar.RowIndex - Global.ScrollPosition)) +
+                        (Global.BarSpace*(bar.RowIndex - Global.ScrollPosition)) + 4;
+                var width = (int) (pixelsPerSecond*bar.Duration.TotalSeconds);
 
                 //restrict the width if longer than the right size
-                if (x + width > (Width - barStartRight))
+                if (x + width > (Width - Global.BarStartRight))
                 {
-                    width = availableWidth + barStartLeft - x;
+                    width = Global.AvailableWidth + Global.BarStartLeft - x;
                 }
+                var numberOfBarsInControl = (Height - Global.BarStartTop)/(Global.BarHeight + Global.BarSpace);
 
-                if ((bar.RowIndex >= scrollPosition && bar.RowIndex < numberOfBarsInControl + scrollPosition))
+                if ((bar.RowIndex >= Global.ScrollPosition &&
+                     bar.RowIndex < numberOfBarsInControl + Global.ScrollPosition))
                 {
                     bar.Visible = true;
+
                     //bar location on chart for mouseover
                     bar.BarSquare = new Square
                     {
                         TopLeftCorner = new Point(x, y),
                         TopRightCorner = new Point(x + width, y),
-                        BottomLeftCorner = new Point(x, y + barHeight),
-                        BottomRightCorner = new Point(x + width, y + barHeight)
+                        BottomLeftCorner = new Point(x, y + Global.BarHeight),
+                        BottomRightCorner = new Point(x + width, y + Global.BarHeight)
                     };
 
                     //sets the rectangle in the middle of the row
-                    var barRect = new Rectangle(x, y, width, barHeight);
+                    var barRect = new Rectangle(x, y, width, Global.BarHeight);
 
                     var barBrush = new SolidBrush(bar.Color);
                     if (bar.IsMouseOver || bar.IsClicked)
@@ -299,9 +254,12 @@ namespace Timeline
                     // Draws the rowtext, only once for each machine
                     if (!rowTitleList.Contains(bar.Name))
                     {
-                        graphics.DrawString(bar.Name, RowFont, Brushes.Black, 0,
-                            barStartTop + (barHeight*(bar.RowIndex - scrollPosition)) +
-                            (barSpace*(bar.RowIndex - scrollPosition)));
+                        graphics.DrawString(bar.Name,
+                            RowFont,
+                            Brushes.Black,
+                            0,
+                            Global.BarStartTop + (Global.BarHeight*(bar.RowIndex - Global.ScrollPosition)) +
+                            (Global.BarSpace*(bar.RowIndex - Global.ScrollPosition)));
 
                         rowTitleList.Add(bar.Name);
                     }
@@ -313,23 +271,27 @@ namespace Timeline
             }
         }
 
-        private void DrawChart(Graphics graphics, List<HeaderModel> headerList)
+        private void DrawChart(Graphics graphics, IList<HeaderModel> headerList)
         {
-            var lastLineStop = barStartTop + (itemCount - scrollPosition)*(barHeight + barSpace);
+            var lastLineStop = Global.BarStartTop + (Global.ItemCount - Global.ScrollPosition) * (Global.BarHeight + Global.BarSpace);
 
             //draw headers
-            foreach (HeaderModel header in headerList)
+            foreach (var header in headerList)
             {
-                header.StartLocation = barStartLeft + (headerList.IndexOf(header)*widthPerHeader);
+                header.StartLocation = Global.BarStartLeft + (headerList.IndexOf(header) * Global.WidthPerHeader);
+
                 //draw the date when there is a change of day
-                if (headerList.IndexOf(header) == 0 ||
-                    header.Time.Day != headerList[headerList.IndexOf(header) - 1].Time.Day)
+                var index = headerList.IndexOf(header);
+
+                if (index == 0 ||
+                    header.Time.Day != headerList[index - 1].Time.Day)
                 {
                     graphics.DrawString(
                         header.Time.ToString("%d-%M-%y"),
                         DateFont,
                         Brushes.Black,
-                        header.StartLocation, 0);
+                        header.StartLocation, 
+                        0);
                 }
 
                 graphics.DrawString(
@@ -337,45 +299,41 @@ namespace Timeline
                     TimeFont,
                     Brushes.Black,
                     header.StartLocation,
-                    headerTimeStartTop);
-            }
+                    Global.HeaderTimeStartTop);
 
-            //draw vertical net
-            foreach (var header in headerList)
-            {
-                var index = headerList.IndexOf(header);
-                var x = barStartLeft + (index * widthPerHeader);
 
+                var x = Global.BarStartLeft + (index * Global.WidthPerHeader);
+
+                //draw vertical net
                 graphics.DrawLine(
-                    GridColor,
+                    Global.GridColor,
                     x,
-                    headerTimeStartTop,
+                    Global.HeaderTimeStartTop,
                     x,
                     lastLineStop);
+
             }
 
             //draw last vertical line
             graphics.DrawLine(
-                GridColor,
-                barStartLeft + availableWidth,
-                headerTimeStartTop,
-                barStartLeft + availableWidth,
+                Global.GridColor,
+                Global.BarStartLeft + Global.AvailableWidth,
+                Global.HeaderTimeStartTop,
+                Global.BarStartLeft + Global.AvailableWidth,
                 lastLineStop);
 
             //draw horizontal net
-            for (int index = 0; index < itemCount; index++)
+            for (var index = 0; index < Global.ItemCount; index++)
             {
-                int y = barStartTop + index*(barHeight + barSpace);
+                var y = Global.BarStartTop + index * (Global.BarHeight + Global.BarSpace);
                 graphics.DrawLine(
-                    GridColor,
-                    barStartLeft,
+                    Global.GridColor,
+                    Global.BarStartLeft,
                     y,
-                    barStartLeft + availableWidth,
+                    Global.BarStartLeft + Global.AvailableWidth,
                     y
                     );
             }
         }
-
-        #endregion
     }
 }

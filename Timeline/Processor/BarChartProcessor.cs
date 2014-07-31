@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Timeline.Model;
+using Timeline;
 
 namespace Timeline.Processor
 {
     public class BarChartProcessor
     {
-        private static List<string> ItemNameList { get; set; }
+        private List<string> ItemNameList { get; set; }
 
-        private const int MinimumIntervalInMinutes = 5;
-
-        public static List<BarModel> GetBarList(List<ItemModel> itemList, out int itemCount)
+        public List<BarModel> GetBarList(List<ItemModel> itemList)
         {
             var barList = new List<BarModel>();
             itemList.ForEach(x =>
@@ -29,11 +28,10 @@ namespace Timeline.Processor
                 };
                 barList.Add(bar);
             });
-            itemCount = ItemNameList.Count;
             return barList;
         }
 
-        private static int GetRowIndex(string barName)
+        private int GetRowIndex(string barName)
         {
             if (ItemNameList == null)
             {
@@ -46,12 +44,11 @@ namespace Timeline.Processor
             return ItemNameList.FindIndex(x => x == barName);
         }
 
-        public static List<HeaderModel> GetFullHeaderList(DateTime startDate, DateTime endDate, int availableWidth)
+        public List<HeaderModel> GetFullHeaderList(DateTime startDate, DateTime endDate, int availableWidth)
         {
             var headerList = new List<HeaderModel>();
-            var newFromTime = new DateTime(startDate.Year, startDate.Month, startDate.Day);
 
-            if ((endDate - startDate).TotalDays > 3)
+            if ((endDate - startDate).TotalDays > 4)
             {
                 for (var date = startDate; date <= endDate; date = date.AddDays(1))
                 {
@@ -64,37 +61,15 @@ namespace Timeline.Processor
             }
             else
             {
-                newFromTime = newFromTime.AddHours(startDate.Hour);
-
-                if (startDate.Minute < 59 & startDate.Minute > 29)
-                {
-                    newFromTime = newFromTime.AddMinutes(30);
-                }
-                else
-                {
-                    newFromTime = newFromTime.AddMinutes(0);
-                }
-
-                for (var date = newFromTime; date <= endDate; date = date.AddMinutes(MinimumIntervalInMinutes))
+                for (var date = startDate; date <= endDate; date = date.AddMinutes(Global.MinimumIntervalInMinutes))
                 {
                     var header = new HeaderModel
                     {
-                        Text = date.Hour + ":"
+                        Text = date.ToShortTimeString(),
+                        Time = date
                     };
 
-                    if (date.Minute < 10)
-                    {
-                        header.Text += "0" + date.Minute;
-                    }
-                    else
-                    {
-                        header.Text += "" + date.Minute;
-                    }
-
-                    header.Time = new DateTime(date.Year, date.Month, date.Day, date.Hour,
-                        date.Minute, 0);
                     headerList.Add(header);
-                    
                 }
             }
 
@@ -108,7 +83,7 @@ namespace Timeline.Processor
             return headerList;
         }
 
-        public static bool MouseInsideBar(Point mousePosition, BarModel bar)
+        public bool MouseInsideBar(Point mousePosition, BarModel bar)
         {
             return mousePosition.X >= bar.BarSquare.TopLeftCorner.X && mousePosition.X <= bar.BarSquare.TopRightCorner.X
                    && mousePosition.Y >= bar.BarSquare.TopLeftCorner.Y && mousePosition.Y <= bar.BarSquare.BottomLeftCorner.Y;
