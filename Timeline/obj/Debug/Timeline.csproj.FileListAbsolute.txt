@@ -1,0 +1,27 @@
+c:\users\maxime\documents\visual studio 14\Projects\UserControl.Timeline\Timeline\bin\Debug\Timeline.dll
+c:\users\maxime\documents\visual studio 14\Projects\UserControl.Timeline\Timeline\bin\Debug\Timeline.pdb
+c:\users\maxime\documents\visual studio 14\Projects\UserControl.Timeline\Timeline\obj\Debug\Timeline.Timeline.resources
+c:\users\maxime\documents\visual studio 14\Projects\UserControl.Timeline\Timeline\obj\Debug\Timeline.csproj.GenerateResource.Cache
+c:\users\maxime\documents\visual studio 14\Projects\UserControl.Timeline\Timeline\obj\Debug\Timeline.dll
+c:\users\maxime\documents\visual studio 14\Projects\UserControl.Timeline\Timeline\obj\Debug\Timeline.pdb
+C:\Users\Maxime Jacques\Desktop\UserControl.Timeline\Timeline\bin\Debug\Timeline.dll
+C:\Users\Maxime Jacques\Desktop\UserControl.Timeline\Timeline\bin\Debug\Timeline.pdb
+C:\Users\Maxime Jacques\Desktop\UserControl.Timeline\Timeline\obj\Debug\Timeline.Timeline.resources
+C:\Users\Maxime Jacques\Desktop\UserControl.Timeline\Timeline\obj\Debug\Timeline.csproj.GenerateResource.Cache
+C:\Users\Maxime Jacques\Desktop\UserControl.Timeline\Timeline\obj\Debug\Timeline.dll
+C:\Users\Maxime Jacques\Desktop\UserControl.Timeline\Timeline\obj\Debug\Timeline.pdb
+C:\Users\Maxime Jacques\Desktop\UserControl.Timeline\Timeline\obj\Debug\Timeline.csprojResolveAssemblyReference.cache
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\Timeline\bin\Debug\Timeline.dll
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\Timeline\bin\Debug\Timeline.pdb
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\Timeline\obj\Debug\Timeline.csprojResolveAssemblyReference.cache
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\Timeline\obj\Debug\Timeline.Timeline.resources
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\Timeline\obj\Debug\Timeline.csproj.GenerateResource.Cache
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\Timeline\obj\Debug\Timeline.dll
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\UserControl.Timeline\Timeline\obj\Debug\Timeline.pdb
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\Timeline\bin\Debug\Timeline.dll
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\Timeline\bin\Debug\Timeline.pdb
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\Timeline\obj\Debug\Timeline.csprojResolveAssemblyReference.cache
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\Timeline\obj\Debug\Timeline.Timeline.resources
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\Timeline\obj\Debug\Timeline.csproj.GenerateResource.Cache
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\Timeline\obj\Debug\Timeline.dll
+C:\Users\Maxime Jacques\Documents\GitHub\TimeLine.UserControl\Timeline\obj\Debug\Timeline.pdb
