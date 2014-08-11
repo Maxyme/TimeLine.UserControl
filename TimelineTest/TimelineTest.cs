@@ -19,7 +19,7 @@ namespace TimelineTest
 
             var testList = new List<ItemModel>();
 
-            var startDate = new DateTime(2013, 12, 29, 10, 9, 0);
+            var startDate = new DateTime(2013, 12, 28, 10, 9, 0);
             var endDate = new DateTime(2013, 12, 30, 22, 29, 0);
 
             for (var i = 0; i < 20; i++)
@@ -28,7 +28,7 @@ namespace TimelineTest
                 {
                     var item1 = new ItemModel
                     {
-                        ItemName = "Item" + "" + i.ToString(),
+                        ItemName = "Item" + "" + i,
                         Duration = TimeSpan.FromSeconds(randomVar.Next(8, 15000)),
                         StartDate = d,
                         ItemColor = Color.PowderBlue

@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using Timeline.Model;
 using Timeline;
+using System.Threading.Tasks;
 
 namespace Timeline.Processor
 {
     public class BarChartProcessor
     {
         private List<string> ItemNameList { get; set; }
-
         public List<BarModel> GetBarList(List<ItemModel> itemList)
         {
             var barList = new List<BarModel>();
@@ -44,49 +45,63 @@ namespace Timeline.Processor
             return ItemNameList.FindIndex(x => x == barName);
         }
 
-        public List<HeaderModel> GetFullHeaderList(DateTime startDate, DateTime endDate, int availableWidth)
+        public List<HeaderModel> GetFullHeaderList(DateTime startDate, DateTime endDate, int availableWidth, Font timeFont)
         {
             var headerList = new List<HeaderModel>();
 
-            if ((endDate - startDate).TotalDays > 4)
-            {
-                for (var date = startDate; date <= endDate; date = date.AddDays(1))
-                {
-                    var header = new HeaderModel
-                    {
-                        Time = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0)
-                    };
-                    headerList.Add(header);
-                }
-            }
-            else
-            {
-                for (var date = startDate; date <= endDate; date = date.AddMinutes(Global.MinimumIntervalInMinutes))
-                {
-                    var header = new HeaderModel
-                    {
-                        Text = date.ToShortTimeString(),
-                        Time = date
-                    };
+            var timeInterval = endDate - startDate;
 
-                    headerList.Add(header);
-                }
+            var headerSpace = System.Windows.Forms.TextRenderer.MeasureText("12-12-12", timeFont);
+
+            var numberOfHeaders = availableWidth / headerSpace.Width;
+
+            var timeIncrement = new TimeSpan(timeInterval.Ticks/numberOfHeaders);
+
+            var index = 0;
+
+            for (var date = startDate;  date <= endDate; date = date.Add(timeIncrement), index ++)
+            {
+                var header = new HeaderModel
+                {
+                    HeaderDateTime = date,
+                    StartLocation = ChartConstants.BarStartLeft + (index * headerSpace.Width)
+                };
+                
+                headerList.Add(header);
             }
 
-            // Clean the header list by removing half until it fits
-            while (availableWidth/headerList.Count < 50)
-            {
-                headerList = headerList.Select((value, index) => new {value, index})
-                    .Where(z => z.index%2 == 0)
-                    .Select(z => z.value).ToList();
-            }
             return headerList;
         }
 
         public bool MouseInsideBar(Point mousePosition, BarModel bar)
         {
-            return mousePosition.X >= bar.BarSquare.TopLeftCorner.X && mousePosition.X <= bar.BarSquare.TopRightCorner.X
-                   && mousePosition.Y >= bar.BarSquare.TopLeftCorner.Y && mousePosition.Y <= bar.BarSquare.BottomLeftCorner.Y;
+            return mousePosition.X >= bar.BarSquare.TopLeftCorner.X 
+                && mousePosition.X <= bar.BarSquare.TopRightCorner.X
+                && mousePosition.Y >= bar.BarSquare.TopLeftCorner.Y 
+                && mousePosition.Y <= bar.BarSquare.BottomLeftCorner.Y;
+        }
+        internal List<BarModel> MouseClickHandler(List<BarModel> list, Point localMousePosition)
+        {
+            Parallel.ForEach(list, bar =>
+            {
+                if (MouseInsideBar(localMousePosition, bar) && bar.Visible)
+                {
+                    bar.IsClicked = true;
+                }
+                else
+                {
+                    bar.IsClicked = false;
+                }
+            });
+
+            return list;
+        }
+        internal double GetPixelsPerSecond(List<HeaderModel> headerList)
+        {
+            var timeBetweenHeaders = headerList[1].HeaderDateTime - headerList[0].HeaderDateTime;
+            var widthBetween = headerList[1].StartLocation - headerList[0].StartLocation;
+            var pixelsPerSecond = widthBetween / timeBetweenHeaders.TotalSeconds;
+            return pixelsPerSecond;
         }
     }
 }
