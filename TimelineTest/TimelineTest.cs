@@ -15,11 +15,16 @@ namespace TimelineTest
 
         private void TimelineTest_Load(object sender, EventArgs e)
         {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
             var randomVar = new Random();
 
             var testList = new List<ItemModel>();
 
-            var startDate = new DateTime(2013, 12, 28, 10, 9, 0);
+            var startDate = new DateTime(2013, 12, 30, 10, 9, 0);
             var endDate = new DateTime(2013, 12, 30, 22, 29, 0);
 
             for (var i = 0; i < 20; i++)
@@ -40,7 +45,6 @@ namespace TimelineTest
             }
 
             timeline1.ShowBarChart(startDate, endDate, testList);
-
         }
 
     }

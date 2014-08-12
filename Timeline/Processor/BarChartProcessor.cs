@@ -103,5 +103,38 @@ namespace Timeline.Processor
             var pixelsPerSecond = widthBetween / timeBetweenHeaders.TotalSeconds;
             return pixelsPerSecond;
         }
+
+        internal BarModel GetBar(BarModel bar, DateTime startDate, double pixelsPerSecond, int scrollPosition, int chartWidth)
+        {
+            var availableWidth = chartWidth - ChartConstants.BarStartLeft - ChartConstants.BarStartRight;
+
+            bar.Visible = true;
+
+            var startTimeSpan = bar.StartValue - startDate;
+            var startLocation = (int)(pixelsPerSecond * startTimeSpan.TotalSeconds);
+            var x = ChartConstants.BarStartLeft + startLocation;
+            var y = ChartConstants.BarStartTop + (ChartConstants.BarHeight * (bar.RowIndex - scrollPosition)) +
+                    (ChartConstants.BarSpace * (bar.RowIndex - scrollPosition)) + 4;
+            var width = (int)(pixelsPerSecond * bar.Duration.TotalSeconds);
+
+            //restrict the width if longer than the right size
+            if (x + width > (chartWidth - ChartConstants.BarStartRight))
+            {
+                width = availableWidth + ChartConstants.BarStartLeft - x;
+            }
+
+            //bar location on chart for mouseover
+            bar.BarSquare = new Square
+            {
+                TopLeftCorner = new Point(x, y),
+                TopRightCorner = new Point(x + width, y),
+                BottomLeftCorner = new Point(x, y + ChartConstants.BarHeight),
+                BottomRightCorner = new Point(x + width, y + ChartConstants.BarHeight)
+            };
+
+            bar.BarRectangle = new Rectangle(x, y, width, ChartConstants.BarHeight);
+
+            return bar;
+        }
     }
 }

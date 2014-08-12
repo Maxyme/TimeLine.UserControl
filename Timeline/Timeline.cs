@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Timeline.Model;
@@ -21,7 +20,7 @@ namespace Timeline
     public partial class Timeline : UserControl
     {
         #region public properties
-        public Color HoverClickColor { get; set; }
+        public SolidBrush HoverClickSolidBrush { get; set; }
         public Font RowFont { get; set; }
         public Font DateFont { get; set; }
         public Font TimeFont { get; set; }
@@ -37,7 +36,7 @@ namespace Timeline
         private string ToolTipTextTitle { get; set; }
         private List<BarModel> BarList { get; set; }
         private DateTime StartDate { get; set; }
-        private int ItemCount { get; set; }
+        private int DistinctItemCount { get; set; }
         private DateTime EndDate { get; set; }
         #endregion
         public Timeline()
@@ -50,16 +49,25 @@ namespace Timeline
             this.EndDate = chartEndDate;
             var proc = new BarChartProcessor();
             this.BarList = proc.GetBarList(items);
-            this.ItemCount = items.Select(i => i.ItemName).Distinct().Count();
+            this.DistinctItemCount = items.Select(i => i.ItemName).Distinct().Count();
+
+            this.Refresh();
         }
         private void ChartMouseMove(Object sender, MouseEventArgs e)
         {
             var localMousePosition = new Point(e.X, e.Y);
-            var proc = new BarChartProcessor();
+
+            if (BarList == null || BarList.Count == 0)
+            {
+                return;
+            }
+
             if (localMousePosition == this.OldMousePosition)
             {
                 return;
             }
+
+            var proc = new BarChartProcessor();
 
             var mouseOverObject = false;
             var tempText = new List<string>();
@@ -94,6 +102,11 @@ namespace Timeline
         }
         private void ChartMouseClick(Object sender, MouseEventArgs e)
         {
+            if (BarList == null || BarList.Count == 0)
+            {
+                return;
+            }
+
             var localMousePosition = new Point(e.X, e.Y);
 
             var proc = new BarChartProcessor();
@@ -108,7 +121,7 @@ namespace Timeline
         {
             //initialize public properties
             RowFont = TimeFont = DateFont = new Font("Segoe UI", 10, FontStyle.Regular, GraphicsUnit.Point);
-            HoverClickColor = Color.LightBlue;
+            HoverClickSolidBrush = new SolidBrush(Color.LightBlue);
             BackColor = Color.White;
 
             //initialize mouse controls
@@ -159,14 +172,18 @@ namespace Timeline
         }
         private void ToolTipText_Popup(Object sender, PopupEventArgs e)
         {
-            var height = (ChartConstants.ToolTipTitleHeight + 4) + (this.ToolTipTextList.Count * (ChartConstants.ToolTipfontHeight + 3));
-            e.ToolTipSize = new Size(230, height);
+            var toolTipHeight = (ChartConstants.ToolTipTitleHeight + 4) + (this.ToolTipTextList.Count * (ChartConstants.ToolTipfontHeight + 3));
+            e.ToolTipSize = new Size(230, toolTipHeight);
         }
         private void PaintChart(Graphics graphics)
         {
+            if (BarList == null || BarList.Count == 0)
+            {
+                return;
+            }
             var proc = new BarChartProcessor();
             var headerList = proc.GetFullHeaderList(this.StartDate, this.EndDate, this.Width, this.TimeFont);
-            if (headerList.Count == 0 || this.ItemCount == 0)
+            if (headerList.Count == 0 || this.DistinctItemCount == 0)
             {
                 return;
             }
@@ -175,14 +192,14 @@ namespace Timeline
 
             this.AvailableWidth = Width - ChartConstants.BarStartLeft - ChartConstants.BarStartRight;
 
-            if (this.ItemCount * (ChartConstants.BarHeight + ChartConstants.BarSpace) > Height)
+            if (this.DistinctItemCount * (ChartConstants.BarHeight + ChartConstants.BarSpace) > Height)
             {
                 this.VScrollBar1.Visible = true;
-                this.VScrollBar1.Maximum = this.ItemCount - 3;
+                this.VScrollBar1.Maximum = this.DistinctItemCount - 3;
             }
 
             graphics.Clear(BackColor);
-            DrawChart(graphics, headerList);
+            DrawChartHeadersAndNet(graphics, headerList);
 
             DrawBars(graphics, this.BarList, pixelsPerSecond);
         }
@@ -195,61 +212,18 @@ namespace Timeline
             //list of machineNames to add to the left of each row
             var rowTitleList = new List<string>();
 
+            var proc = new BarChartProcessor();
+
             // Draws each bar
             foreach (var bar in barList)
             {
-                var startTimeSpan = bar.StartValue - this.StartDate;
-                var startLocation = (int) (pixelsPerSecond * startTimeSpan.TotalSeconds);
-                var x = ChartConstants.BarStartLeft + startLocation;
-                var y = ChartConstants.BarStartTop + (ChartConstants.BarHeight * (bar.RowIndex - this.ScrollPosition)) +
-                        (ChartConstants.BarSpace * (bar.RowIndex - this.ScrollPosition)) + 4;
-                var width = (int) (pixelsPerSecond*bar.Duration.TotalSeconds);
-
-                //restrict the width if longer than the right size
-                if (x + width > (Width - ChartConstants.BarStartRight))
-                {
-                    width = this.AvailableWidth + ChartConstants.BarStartLeft - x;
-                }
                 var numberOfBarsInControl = (Height - ChartConstants.BarStartTop)/(ChartConstants.BarHeight + ChartConstants.BarSpace);
 
                 if ((bar.RowIndex >= this.ScrollPosition &&
                      bar.RowIndex < numberOfBarsInControl + this.ScrollPosition))
                 {
-                    bar.Visible = true;
-
-                    //bar location on chart for mouseover
-                    bar.BarSquare = new Square
-                    {
-                        TopLeftCorner = new Point(x, y),
-                        TopRightCorner = new Point(x + width, y),
-                        BottomLeftCorner = new Point(x, y + ChartConstants.BarHeight),
-                        BottomRightCorner = new Point(x + width, y + ChartConstants.BarHeight)
-                    };
-
-                    //sets the rectangle in the middle of the row
-                    var barRect = new Rectangle(x, y, width, ChartConstants.BarHeight);
-
-                    var barBrush = new SolidBrush(bar.Color);
-                    if (bar.IsMouseOver || bar.IsClicked)
-                    {
-                        barBrush = new SolidBrush(HoverClickColor);
-                    }
-
-                    graphics.FillRectangle(barBrush, barRect);
-                    graphics.DrawRectangle(Pens.Black, barRect);
-
-                    // Draws the rowtext, only once for each machine
-                    if (!rowTitleList.Contains(bar.Name))
-                    {
-                        graphics.DrawString(bar.Name,
-                            RowFont,
-                            Brushes.Black,
-                            0,
-                            ChartConstants.BarStartTop + (ChartConstants.BarHeight * (bar.RowIndex - this.ScrollPosition)) +
-                            (ChartConstants.BarSpace * (bar.RowIndex - this.ScrollPosition)));
-
-                        rowTitleList.Add(bar.Name);
-                    }
+                    var newBar = proc.GetBar(bar, this.StartDate, pixelsPerSecond, ScrollPosition, this.Width);
+                    DrawBarAndRowText(newBar, rowTitleList, graphics);
                 }
                 else
                 {
@@ -257,9 +231,33 @@ namespace Timeline
                 }
             }
         }
-        private void DrawChart(Graphics graphics, IList<HeaderModel> headerList)
+        private void DrawBarAndRowText(BarModel newBar, ICollection<string> rowTitleList, Graphics graphics)
         {
-            var verticalLineLastY = ChartConstants.BarStartTop + (this.ItemCount - this.ScrollPosition) * (ChartConstants.BarHeight + ChartConstants.BarSpace);
+            var barBrush = new SolidBrush(newBar.Color);
+            if (newBar.IsMouseOver || newBar.IsClicked)
+            {
+                barBrush = HoverClickSolidBrush;
+            }
+
+            graphics.FillRectangle(barBrush, newBar.BarRectangle);
+            graphics.DrawRectangle(Pens.Black, newBar.BarRectangle);
+
+            // Draws the rowtext, only once for each machine
+            if (!rowTitleList.Contains(newBar.Name))
+            {
+                graphics.DrawString(newBar.Name,
+                    RowFont,
+                    Brushes.Black,
+                    0,
+                    ChartConstants.BarStartTop + (ChartConstants.BarHeight * (newBar.RowIndex - this.ScrollPosition)) +
+                    (ChartConstants.BarSpace * (newBar.RowIndex - this.ScrollPosition)));
+
+                rowTitleList.Add(newBar.Name);
+            }
+        }
+        private void DrawChartHeadersAndNet(Graphics graphics, IList<HeaderModel> headerList)
+        {
+            var verticalLineLastY = ChartConstants.BarStartTop + (this.DistinctItemCount - this.ScrollPosition) * (ChartConstants.BarHeight + ChartConstants.BarSpace);
 
             //draw headers
             foreach (var header in headerList)
@@ -304,7 +302,7 @@ namespace Timeline
                 verticalLineLastY);
 
             //draw horizontal net
-            for (var index = 0; index < this.ItemCount; index++)
+            for (var index = 0; index < this.DistinctItemCount; index++)
             {
                 var y = ChartConstants.BarStartTop + index * (ChartConstants.BarHeight + ChartConstants.BarSpace);
                 graphics.DrawLine(

@@ -5,10 +5,6 @@ namespace Timeline.Model
 {
     public class BarModel
     {
-        //public Point BottomRightCorner { get; set; }
-        //public Point BottomLeftCorner { get; set; }
-        //public Point TopRightCorner { get; set; }
-        //public Point TopLeftCorner { get; set; }
         public Square BarSquare { get; set; }
         public DateTime StartValue { get; set; }
         public DateTime EndValue { get; set; }
@@ -19,6 +15,7 @@ namespace Timeline.Model
         public bool IsClicked { get; set; }
         public bool IsMouseOver { get; set; }
         public bool Visible { get; set; }
+        public Rectangle BarRectangle { get; set; }
     }
 
     public class Square

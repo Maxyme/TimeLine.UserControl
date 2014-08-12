@@ -41,7 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Global.cs" />
+    <Compile Include="ChartConstants.cs" />
     <Compile Include="Model\BarModel.cs" />
     <Compile Include="Model\HeaderModel.cs" />
     <Compile Include="Model\ItemModel.cs" />
