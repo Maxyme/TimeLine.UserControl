@@ -24,8 +24,7 @@ namespace Timeline.Processor
                     EndValue = x.StartDate + x.Duration,
                     Duration = x.Duration,
                     Color = x.ItemColor,
-                    RowIndex = GetRowIndex(x.ItemName),
-                    BarSquare = new Square()
+                    RowIndex = GetRowIndex(x.ItemName)
                 };
                 barList.Add(bar);
             });
@@ -75,10 +74,11 @@ namespace Timeline.Processor
 
         public bool MouseInsideBar(Point mousePosition, BarModel bar)
         {
-            return mousePosition.X >= bar.BarSquare.TopLeftCorner.X 
-                && mousePosition.X <= bar.BarSquare.TopRightCorner.X
-                && mousePosition.Y >= bar.BarSquare.TopLeftCorner.Y 
-                && mousePosition.Y <= bar.BarSquare.BottomLeftCorner.Y;
+            return mousePosition.X >= bar.BarRectangle.Left
+                   && mousePosition.X <= bar.BarRectangle.Right
+                   && mousePosition.Y >= bar.BarRectangle.Top
+                   && mousePosition.Y <= bar.BarRectangle.Bottom;
+
         }
         internal List<BarModel> MouseClickHandler(List<BarModel> list, Point localMousePosition)
         {
@@ -122,15 +122,6 @@ namespace Timeline.Processor
             {
                 width = availableWidth + ChartConstants.BarStartLeft - x;
             }
-
-            //bar location on chart for mouseover
-            bar.BarSquare = new Square
-            {
-                TopLeftCorner = new Point(x, y),
-                TopRightCorner = new Point(x + width, y),
-                BottomLeftCorner = new Point(x, y + ChartConstants.BarHeight),
-                BottomRightCorner = new Point(x + width, y + ChartConstants.BarHeight)
-            };
 
             bar.BarRectangle = new Rectangle(x, y, width, ChartConstants.BarHeight);
 
